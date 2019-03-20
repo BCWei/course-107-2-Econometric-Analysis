@@ -14,7 +14,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval=F)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # 參考資料
@@ -121,8 +121,56 @@ journals %>%
 # 複迴歸模型
 
 ```{r}
+a<- NA
+
+```
+
+```{r}
+is.na(a)
+
+a=="NA"
+#Explanation
+```
+```{r}
+#traditional
+#~:迴歸模型的"="
+lm(log(subs)~log(citeprice),data=journals)
+
+#pipe 1
+journals %>% 
+  lm(log(subs)~log(citeprice),data=.) -> model1
+
+#pipe 2
+journals %>%
+  lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model2
 
 
+```
+
+##broom
+#tidy
+
+#augment
+#glance
+
+```{r ,result='asis'}
+journals %>% 
+  lm(log(subs)~log(citeprice),data=.) -> model_1
+journals %>%
+  lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model_2
+
+library(sandwich)
+library(lmtest)
+library(stargazer)
+
+#使用vcovHC函數來計算HC1型的異質變異（即橫斷面資料下的線性迴歸模型）
+coeftest(model_1, vcov. = vcovHC, type="HC1") -> model_1_coeftest #此物件是矩陣
+coeftest(model_2, vcov. = vcovHC, type="HC1") -> model_2_coeftest
+
+stargazer(model_1, model_2, 
+          se=list(model_1_coeftest[,"Std. Error"], model_2_coeftest[,2]),
+          type="html",
+          align=TRUE)
 ```
 
 ## 模型比較
